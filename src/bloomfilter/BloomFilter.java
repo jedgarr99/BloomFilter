@@ -24,14 +24,13 @@ public class BloomFilter<T> {
 
     private BitSet bitset;
     private int size; //tamaño del bitset
-    private int elementosEsperados; // expected (maximum) number of elements to be added
+    private int elementosEsperados; // maxima cantidad de elementos esperados 
     private int cant; // cantidad actual de elementos almacenados 
     private int k; //numero de funciones de hash a aplicar 
     static final Charset charset = Charset.forName("UTF-8"); // Clave utilizada para guardar los strings como bytes 
     static final String hashName = "MD5"; //Algoritmo para hashear que sera utilizado -> Si se necesita mayor precision esta SHA1
     static final MessageDigest digestFunction;
-
-    static { // The digest method is reused between instances
+    static { // prueba que el metodo de hasheo en hashName exista 
         MessageDigest tmp;
         try {
             tmp = java.security.MessageDigest.getInstance(hashName);
@@ -46,6 +45,10 @@ public class BloomFilter<T> {
      * @param n numero de elementos a almacenar
      * @param k numero de funciones de hash a utilizar
      */
+    public BloomFilter(){ // constructor vacio por si solo te interesa saber el tamaño minimo 
+        
+    }
+ 
     public BloomFilter(double c, int n, int k) {
         this.elementosEsperados = n;
         this.k = k;
@@ -62,6 +65,21 @@ public class BloomFilter<T> {
         this(Math.ceil(-(Math.log(porcentajeFalsosPositivos) / Math.log(2))) / Math.log(2), // c = k / ln(2)
                 n,
                 (int) Math.ceil(-(Math.log(porcentajeFalsosPositivos) / Math.log(2)))); // k = ceil(-log_2(false prob.))
+    }
+    public int tamañoMinimo(double porcentajeFalsosPositivos, int n) {
+        int res=1;
+        int k=2; //se elige el valor de k arbitrariamente, pues en la tarea se deja libre 
+        BloomFilter<String> bloom;
+        boolean ban =true;
+        int i=1;
+        
+        while(ban){
+            i++;
+            bloom= new BloomFilter<>(i,n,k);
+            ban= bloom.probabilidadDeFalsosPositivosEsperada()>=porcentajeFalsosPositivos;
+        }
+        return n*i; 
+        
     }
 
     public void inserta(T element) {
@@ -128,14 +146,14 @@ public class BloomFilter<T> {
 
     public static void main(String[] args) {
         
-        int i = 0;
+        int l = 0;
         boolean ban;
         Scanner sc = null;
         String[] lista = new String[10000];
         int[] coincidencias = new int[35];
 
         try {
-            File ent = new File("C:\\Users\\hca\\Desktop\\BloomFilter\\palabras.txt");
+            File ent = new File("/Users/elisaortizloyola/Desktop/BloomFilter/palabras.txt");
             sc = new Scanner(new FileReader(ent));
 
         } catch (FileNotFoundException e) {
@@ -143,26 +161,47 @@ public class BloomFilter<T> {
             System.exit(1);
         }
 
-        while (i < 10000) {
+        while (l < 10000) {
             String text = sc.nextLine().toLowerCase();
             ban = true;
             if ((text != null) && (!text.equals("")) && (text.matches("^[a-zA-Z]*$"))) {
-                lista[i] = text;
-                i++;
+                lista[l] = text;
+                l++;
             }
 
         }
-
+        //Prueba de la distribucion en un arreglo de 10000 palabras utilizando la funcion de hasheo standard de java 
         for (String pal : lista) {
             coincidencias[Math.abs(pal.hashCode() % 35)]++;
 
         }
         System.out.println(Arrays.toString(coincidencias));
+        
+        //prueba para ver que regresaba el getBytes
         System.out.println(Arrays.toString("gato".toString().getBytes(charset)));
         System.out.println(Arrays.toString(createHashes("gato".toString().getBytes(charset), 4)));
         
+        
+        //prueba para diseñar el algoritmo de TamañoMinimo
         BloomFilter<String> bloom= new BloomFilter<>(5,10,2);
         System.out.println(bloom.probabilidadDeFalsosPositivosEsperada());
+        
+        System.out.println("Prueba");
+        for(int i=0;i<10;i++){
+            bloom= new BloomFilter<>(i,10,2);
+            System.out.println(bloom.probabilidadDeFalsosPositivosEsperada()+"   "+i);
+        }
+        BloomFilter<String> bloom2= new BloomFilter<>();
+        System.out.println(bloom2.tamañoMinimo(.35, 10));
+        System.out.println("-----------------------------------------------");
+        //Obtencion de datos de como cambian los falsos positivos si cambia k
+        for(int y=1;y<50;y++){
+            bloom= new BloomFilter<>(5,10,y);
+         System.out.println(bloom.probabilidadDeFalsosPositivosEsperada() );
+        }
+        
+        
+        
 
 
 
