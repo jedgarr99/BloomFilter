@@ -105,7 +105,7 @@ public class BloomFilter<T> {
                 digestFunction.update(salt);
                 salt++;
                 digest = digestFunction.digest(data); //devuelve 16 bytes segun el objeto hasheado
-                System.out.println(Arrays.toString(digest));
+                //System.out.println(Arrays.toString(digest));
             }
 
             for (int i = 0; i < digest.length / 4 && k < hashes; i++) {
@@ -153,7 +153,7 @@ public class BloomFilter<T> {
         int[] coincidencias = new int[35];
 
         try {
-            File ent = new File("/Users/elisaortizloyola/Desktop/BloomFilter/palabras.txt");
+            File ent = new File("C:\\Users\\JRODRIGUORT\\Desktop\\BloomFilter\\palabras.txt");
             sc = new Scanner(new FileReader(ent));
 
         } catch (FileNotFoundException e) {
@@ -200,10 +200,26 @@ public class BloomFilter<T> {
          System.out.println(bloom.probabilidadDeFalsosPositivosEsperada() );
         }
         
-        
-        
+        System.out.println("-----------------------------------------------");
+        //Prueba experimental 
+        int k = 2;
+        boolean men = true;
+        int c = 1, elementos=1000;
+        BloomFilter<String> bloom3=null;
+        double porcentajeFalsosPositivosAceptable = .25;
 
-
+        while (men) {
+            bloom3 = new BloomFilter<>(c, elementos, k);
+            
+            for (String pal : lista) {
+                bloom3.inserta(pal);
+            }
+            c++;
+            men = bloom3.probabilidadDeFalsosPositivos() >= porcentajeFalsosPositivosAceptable;
+        }
+        System.out.println("Probabilidad de Falsos Positivos:\t"+bloom3.probabilidadDeFalsosPositivos());
+        System.out.println("Tamaño del Bitset:\t\t\t"+c*elementos);
+        System.out.println("Bits por elemento:\t\t\t"+c);
 
     }
 }
